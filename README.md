@@ -3,12 +3,16 @@
 IBTaxSP is a local web tool to review Interactive Brokers yearly activity and prepare a traceable Spanish tax workflow around:
 
 - stock sales under FIFO
+  
   <img width="1435" height="1099" alt="image" src="https://github.com/user-attachments/assets/20866876-b84f-4920-bec1-869c1b76fbc9" />
+  
 - EUR/USD cash movements
 - foreign exchange effects
 - dividends and withholdings
 - annual support views for filing
+  
   <img width="1208" height="1229" alt="image" src="https://github.com/user-attachments/assets/ee6461dc-2fdc-4696-b89a-32dd58ec8a2d" />
+  
 
 The project is designed to help you understand and document the numbers behind your annual filing. It is not tax advice and does not replace a professional review.
 
