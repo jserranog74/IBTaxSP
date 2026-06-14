@@ -211,3 +211,5 @@ Example payload:
 - expand unsupported trading patterns
 - add anonymized demo data for public repository use
 - add tests around fiscal edge cases
+
+<img width="1208" height="1229" alt="image" src="https://github.com/user-attachments/assets/ee6461dc-2fdc-4696-b89a-32dd58ec8a2d" />
