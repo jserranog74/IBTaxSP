@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Frontend
+web/node_modules/
+web/dist/
+
+# Local IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Interactive Brokers private data
+IB/Tax/**
+!IB/Tax/
+!IB/Tax/.gitkeep
+!IB/Tax/README.md
+IB/Reports/**
+!IB/Reports/
+!IB/Reports/.gitkeep
+!IB/Reports/README.md
