@@ -39,6 +39,7 @@ type TaxSummary = {
 
 type SymbolGainSummary = {
   symbol: string
+  issuer_name: string | null
   proceeds_eur: number
   basis_eur: number
   gain_eur: number
@@ -58,7 +59,23 @@ type DividendEntry = {
   description: string
 }
 
+type FxFilingEntry = {
+  acquisition_date: string
+  transmission_date: string
+  currency: string
+  quantity: number
+  acquisition_value_eur: number
+  transmission_value_eur: number
+  gain_eur: number
+  acquisition_value_usd: number
+  transmission_value_usd: number
+  gain_usd: number
+  acquisition_description: string | null
+  transmission_description: string | null
+}
+
 type FifoMatch = {
+  position_side: string
   symbol: string
   sell_trade_date: string
   sell_date_time: string
@@ -84,6 +101,7 @@ type FifoMatch = {
 }
 
 type FifoDisposition = {
+  position_side: string
   symbol: string
   sell_trade_date: string
   sell_date_time: string
@@ -101,6 +119,7 @@ type FifoDisposition = {
 }
 
 type FifoOpenLot = {
+  position_side: string
   symbol: string
   buy_trade_date: string
   buy_date_time: string
@@ -124,11 +143,32 @@ type RentaInputBlock = {
   description: string
   amount_eur: number
   review_notes: string[]
+  filing_reference_title: string | null
+  filing_references: string[]
+}
+
+type RentaFilingLine = {
+  section: string
+  concept: string
+  amount_eur: number
+  notes: string[]
+  destination: string | null
+  box_reference: string | null
+  entry_method: string | null
+  suggested_description: string | null
+  issuer_name: string | null
+  transmission_value_eur: number | null
+  acquisition_value_eur: number | null
+  mark_reinvestment_check: boolean | null
+  mark_repurchase_loss_check: boolean | null
+  mark_dt9_check: boolean | null
 }
 
 type RentaGuidance = {
   year: number
   blocks: RentaInputBlock[]
+  filing_lines: RentaFilingLine[]
+  fx_filing_entries: FxFilingEntry[]
   action_items: string[]
   caveats: string[]
 }
@@ -188,6 +228,7 @@ type RentaView = {
   tax_summary: TaxSummary
   gains_by_symbol: SymbolGainSummary[]
   dividend_entries: DividendEntry[]
+  fx_filing_entries: FxFilingEntry[]
   disposition_count: number
   fx_event_count: number
 }
@@ -238,10 +279,33 @@ const copy = {
     noIssuesDesc: 'No hay eventos FIFO no soportados en este ejercicio.',
     guidanceTitle: 'Ayuda Renta',
     guidanceDesc: 'Bloques practicos para trasladar importes y revisar incidencias antes de presentar.',
+    filingLinesTitle: 'Transcripcion para Renta Web',
+    filingLinesDesc: 'Lista corta para pasar los importes a la declaracion de forma mas digerida.',
+    fxLinesTitle: 'Detalle divisa para F2',
+    fxLinesDesc: 'Lineas de apoyo con fecha de adquisicion, fecha de transmision y valores para cargar la divisa realizada sin inventar fechas.',
+    fxLinesNote: 'Valores EUR operativos calculados al tipo del dia de transmision para cuadrar la ganancia fiscal anual de divisa.',
+    exportCsv: 'Copiar CSV',
+    exportCsvDone: 'CSV copiado',
+    exportCsvSharesHelp: 'Formato AEAT: transmision;adquisicion;ganancia;emisora',
+    issuerName: 'Entidad emisora',
+    transmissionValue: 'Valor de transmision',
+    acquisitionValue: 'Valor de adquisicion',
+    acquisitionDate: 'Fecha adquisicion',
+    transmissionDate: 'Fecha transmision',
+    checkReinvestment65: 'Exencion por reinversion en rentas vitalicias >65',
+    checkRepurchaseLoss: 'No imputacion de perdidas por recompra',
+    checkDt9: 'Aplicacion DT 9ª',
+    destination: 'Donde va',
+    boxReference: 'Casilla orientativa',
+    entryMethod: 'Como meterlo',
+    suggestedDescription: 'Descripcion sugerida',
+    yes: 'Si',
+    no: 'No',
     actionsTitle: 'Acciones recomendadas',
     actionsDesc: 'Checklist practico antes de trasladar cifras.',
     caveatsTitle: 'Cautelas',
     caveatsDesc: 'Puntos a revisar antes de dar el ejercicio por cerrado.',
+    filingReferenceLabel: 'Referencia de casillas',
     fifoTitle: 'Informe FIFO anual',
     fifoDesc: 'Detalle de ventas y lotes consumidos para justificar las cifras declaradas.',
     filterSymbol: 'Filtrar por activo',
@@ -262,6 +326,8 @@ const copy = {
     consumedThisSale: 'Consumido en esta venta',
     sourceBuy: 'Compra origen',
     targetSale: 'Venta destino',
+    sourceShortSell: 'Venta origen',
+    targetCoverBuy: 'Compra cierre',
     quantity: 'Cantidad',
     buyPriceUsd: 'Precio compra USD',
     sellPriceUsd: 'Precio venta USD',
@@ -367,10 +433,33 @@ const copy = {
     noIssuesDesc: 'There are no unsupported FIFO events in this year.',
     guidanceTitle: 'Filing Help',
     guidanceDesc: 'Practical blocks to move amounts and review issues before filing.',
+    filingLinesTitle: 'Renta Web transcription',
+    filingLinesDesc: 'Short list to move figures into the tax return more comfortably.',
+    fxLinesTitle: 'F2 FX detail',
+    fxLinesDesc: 'Support lines with acquisition date, transmission date, and values so you can enter realized FX without inventing dates.',
+    fxLinesNote: 'Operational EUR values are calculated at the transmission-day FX rate so they reconcile to the annual fiscal FX gain.',
+    exportCsv: 'Copy CSV',
+    exportCsvDone: 'CSV copied',
+    exportCsvSharesHelp: 'AEAT format: transfer;acquisition;gain;issuer',
+    issuerName: 'Issuer',
+    transmissionValue: 'Transfer value',
+    acquisitionValue: 'Acquisition value',
+    acquisitionDate: 'Acquisition date',
+    transmissionDate: 'Transmission date',
+    checkReinvestment65: 'Exemption for reinvestment in life annuities >65',
+    checkRepurchaseLoss: 'Loss deferral due to repurchase',
+    checkDt9: 'Apply Transitional Rule 9',
+    destination: 'Where it goes',
+    boxReference: 'Indicative box',
+    entryMethod: 'How to enter it',
+    suggestedDescription: 'Suggested description',
+    yes: 'Yes',
+    no: 'No',
     actionsTitle: 'Recommended actions',
     actionsDesc: 'Practical checklist before moving figures.',
     caveatsTitle: 'Caveats',
     caveatsDesc: 'Points to review before considering the year closed.',
+    filingReferenceLabel: 'Form reference',
     fifoTitle: 'Annual FIFO report',
     fifoDesc: 'Detailed sales and consumed lots to justify the reported figures.',
     filterSymbol: 'Filter by asset',
@@ -391,6 +480,8 @@ const copy = {
     consumedThisSale: 'Consumed in this sale',
     sourceBuy: 'Source buy',
     targetSale: 'Target sale',
+    sourceShortSell: 'Source short sale',
+    targetCoverBuy: 'Cover buy',
     quantity: 'Quantity',
     buyPriceUsd: 'Buy price USD',
     sellPriceUsd: 'Sell price USD',
@@ -490,6 +581,7 @@ function App() {
   const [withdrawalSimulation, setWithdrawalSimulation] = useState<WithdrawalSimulationResult | null>(null)
   const [isSimulatingWithdrawal, setIsSimulatingWithdrawal] = useState(false)
   const [simulationError, setSimulationError] = useState<string | null>(null)
+  const [csvCopied, setCsvCopied] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<ActiveSection>('summary')
   const [fifoSymbolFilter, setFifoSymbolFilter] = useState<string>('ALL')
   const [isLoadingYears, setIsLoadingYears] = useState(true)
@@ -642,6 +734,14 @@ function App() {
     } finally {
       setIsSimulatingWithdrawal(false)
     }
+  }
+
+  async function copyListedSharesCsv() {
+    if (!guidance) return
+    const csv = buildListedSharesCsv(guidance)
+    await navigator.clipboard.writeText(csv)
+    setCsvCopied(t.exportCsvDone)
+    window.setTimeout(() => setCsvCopied(null), 2500)
   }
 
   return (
@@ -868,6 +968,13 @@ function App() {
                   <h2>{t.guidanceTitle}</h2>
                   <p>{t.guidanceDesc}</p>
                 </div>
+                <div className="export-toolbar">
+                  <button className="simulate-button" type="button" onClick={() => void copyListedSharesCsv()}>
+                    {t.exportCsv}
+                  </button>
+                  <span className="export-help">{t.exportCsvSharesHelp}</span>
+                  {csvCopied ? <span className="export-done">{csvCopied}</span> : null}
+                </div>
                 <div className="guidance-grid-cards">
                   {guidance.blocks.map((block) => (
                     <article key={block.title} className="guidance-card">
@@ -875,6 +982,17 @@ function App() {
                       <h3>{block.title}</h3>
                       <p>{block.description}</p>
                       <strong>{formatMoney(block.amount_eur, 'EUR', language)}</strong>
+                      {block.filing_reference_title && block.filing_references.length > 0 ? (
+                        <div className="filing-reference-box">
+                          <span className="guidance-kicker">{t.filingReferenceLabel}</span>
+                          <p className="filing-reference-title">{block.filing_reference_title}</p>
+                          <ul>
+                            {block.filing_references.map((reference) => (
+                              <li key={reference}>{reference}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                       <ul>
                         {block.review_notes.map((note) => <li key={note}>{note}</li>)}
                       </ul>
@@ -882,6 +1000,126 @@ function App() {
                   ))}
                 </div>
               </article>
+
+              <article className="panel panel-wide">
+                <div className="panel-head">
+                  <h2>{t.filingLinesTitle}</h2>
+                  <p>{t.filingLinesDesc}</p>
+                </div>
+                <div className="guidance-grid-cards">
+                  {guidance.filing_lines.map((line) => (
+                    <article key={`${line.section}-${line.concept}`} className="guidance-card filing-line-card">
+                      <span className="guidance-kicker">{line.section}</span>
+                      <h3>{line.concept}</h3>
+                      <strong>{formatMoney(line.amount_eur, 'EUR', language)}</strong>
+                      {line.transmission_value_eur != null && line.acquisition_value_eur != null ? (
+                        <div className="filing-line-meta">
+                          <div>
+                            <span>{t.issuerName}</span>
+                            <strong>{line.issuer_name ?? 'N/D'}</strong>
+                          </div>
+                          <div>
+                            <span>{t.transmissionValue}</span>
+                            <strong>{formatMoney(line.transmission_value_eur, 'EUR', language)}</strong>
+                          </div>
+                          <div>
+                            <span>{t.acquisitionValue}</span>
+                            <strong>{formatMoney(line.acquisition_value_eur, 'EUR', language)}</strong>
+                          </div>
+                          <div>
+                            <span>{t.checkReinvestment65}</span>
+                            <strong>{line.mark_reinvestment_check ? t.yes : t.no}</strong>
+                          </div>
+                          <div>
+                            <span>{t.checkRepurchaseLoss}</span>
+                            <strong>{line.mark_repurchase_loss_check ? t.yes : t.no}</strong>
+                          </div>
+                          <div>
+                            <span>{t.checkDt9}</span>
+                            <strong>{line.mark_dt9_check ? t.yes : t.no}</strong>
+                          </div>
+                        </div>
+                      ) : null}
+                      {line.destination || line.box_reference || line.entry_method ? (
+                        <div className="filing-line-meta filing-line-meta-compact">
+                          {line.destination ? (
+                            <div>
+                              <span>{t.destination}</span>
+                              <strong>{line.destination}</strong>
+                            </div>
+                          ) : null}
+                          {line.box_reference ? (
+                            <div>
+                              <span>{t.boxReference}</span>
+                              <strong>{line.box_reference}</strong>
+                            </div>
+                          ) : null}
+                          {line.entry_method ? (
+                            <div>
+                              <span>{t.entryMethod}</span>
+                              <strong>{line.entry_method}</strong>
+                            </div>
+                          ) : null}
+                          {line.suggested_description ? (
+                            <div>
+                              <span>{t.suggestedDescription}</span>
+                              <strong>{line.suggested_description}</strong>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      <ul>
+                        {line.notes.map((note) => (
+                          <li key={note}>{note}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              </article>
+
+              {guidance.fx_filing_entries.length > 0 ? (
+                <article className="panel panel-wide">
+                  <div className="panel-head">
+                    <h2>{t.fxLinesTitle}</h2>
+                    <p>{t.fxLinesDesc}</p>
+                  </div>
+                  <p className="export-help">{t.fxLinesNote}</p>
+                  <div className="guidance-grid-cards">
+                    {guidance.fx_filing_entries.map((entry, index) => (
+                      <article
+                        key={`${entry.acquisition_date}-${entry.transmission_date}-${entry.quantity}-${index}`}
+                        className="guidance-card filing-line-card"
+                      >
+                        <span className="guidance-kicker">{entry.currency}</span>
+                        <h3>{formatMoney(entry.gain_eur, 'EUR', language)}</h3>
+                        <div className="filing-line-meta filing-line-meta-compact">
+                          <div>
+                            <span>{t.acquisitionDate}</span>
+                            <strong>{formatDate(entry.acquisition_date)}</strong>
+                          </div>
+                          <div>
+                            <span>{t.transmissionDate}</span>
+                            <strong>{formatDate(entry.transmission_date)}</strong>
+                          </div>
+                          <div>
+                            <span>{t.quantity}</span>
+                            <strong>{formatNumber(entry.quantity, language)} {entry.currency}</strong>
+                          </div>
+                          <div>
+                            <span>{t.transmissionValue}</span>
+                            <strong>{formatMoney(entry.transmission_value_eur, 'EUR', language)}</strong>
+                          </div>
+                          <div>
+                            <span>{t.acquisitionValue}</span>
+                            <strong>{formatMoney(entry.acquisition_value_eur, 'EUR', language)}</strong>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </article>
+              ) : null}
 
               <article className="panel">
                 <div className="panel-head">
@@ -966,13 +1204,13 @@ function App() {
 
                             {group.matches.map((match) => (
                               <div key={`${match.buy_transaction_id ?? match.buy_date_time}-${match.sell_transaction_id ?? match.sell_date_time}-${match.quantity}`} className="fifo-match">
-                                <div><span>{t.sourceBuy}</span><strong>{formatDate(match.buy_trade_date)}</strong></div>
-                                <div><span>{t.targetSale}</span><strong>{formatDate(match.sell_trade_date)}</strong></div>
+                                <div><span>{match.position_side === 'short' ? t.sourceShortSell : t.sourceBuy}</span><strong>{formatDate(match.buy_trade_date)}</strong></div>
+                                <div><span>{match.position_side === 'short' ? t.targetCoverBuy : t.targetSale}</span><strong>{formatDate(match.sell_trade_date)}</strong></div>
                                 <div><span>{t.quantity}</span><strong>{match.quantity}</strong></div>
-                                <div><span>{t.buyPriceUsd}</span><strong>{formatMoney(match.buy_unit_cost, 'USD', language)}</strong></div>
-                                <div><span>{t.sellPriceUsd}</span><strong>{formatMoney(match.sell_unit_proceeds, 'USD', language)}</strong></div>
-                                <div><span>{t.costEur}</span><strong>{formatMoney(match.buy_basis_eur, 'EUR', language)}</strong></div>
-                                <div><span>{t.saleEur}</span><strong>{formatMoney(match.sell_proceeds_eur, 'EUR', language)}</strong></div>
+                                <div><span>{match.position_side === 'short' ? t.sellPriceUsd : t.buyPriceUsd}</span><strong>{formatMoney(match.buy_unit_cost, 'USD', language)}</strong></div>
+                                <div><span>{match.position_side === 'short' ? t.buyPriceUsd : t.sellPriceUsd}</span><strong>{formatMoney(match.sell_unit_proceeds, 'USD', language)}</strong></div>
+                                <div><span>{match.position_side === 'short' ? t.saleEur : t.costEur}</span><strong>{formatMoney(match.buy_basis_eur, 'EUR', language)}</strong></div>
+                                <div><span>{match.position_side === 'short' ? t.costEur : t.saleEur}</span><strong>{formatMoney(match.sell_proceeds_eur, 'EUR', language)}</strong></div>
                                 <div><span>{t.gainEur}</span><strong className={match.gain_eur >= 0 ? 'positive' : 'negative'}>{formatMoney(match.gain_eur, 'EUR', language)}</strong></div>
                               </div>
                             ))}
@@ -1003,7 +1241,7 @@ function App() {
                     <tbody>
                       {fifo.open_lots.map((lot) => (
                         <tr key={`${lot.symbol}-${lot.buy_date_time}-${lot.transaction_id ?? 'seed'}`}>
-                          <td>{lot.symbol}</td>
+                          <td>{lot.position_side === 'short' ? `${lot.symbol} (short)` : lot.symbol}</td>
                           <td>{formatDate(lot.buy_trade_date)}</td>
                           <td>{lot.remaining_quantity}</td>
                           <td>{formatMoney(lot.unit_cost_eur, 'EUR', language)}</td>
@@ -1023,6 +1261,13 @@ function App() {
                 <div className="panel-head">
                   <h2>{t.haciendaTitle}</h2>
                   <p>{t.haciendaDesc}</p>
+                </div>
+                <div className="export-toolbar">
+                  <button className="simulate-button" type="button" onClick={() => void copyListedSharesCsv()}>
+                    {t.exportCsv}
+                  </button>
+                  <span className="export-help">{t.exportCsvSharesHelp}</span>
+                  {csvCopied ? <span className="export-done">{csvCopied}</span> : null}
                 </div>
                 <div className="guidance-grid-cards">
                   {hacienda.entries.map((entry) => (
@@ -1221,6 +1466,27 @@ function App() {
 }
 
 export default App
+
+function buildListedSharesCsv(guidance: RentaGuidance) {
+  return guidance.filing_lines
+    .filter((line) => line.section === 'Acciones cotizadas' || line.section === 'Listed shares')
+    .map((line) => {
+      const transmission = formatCsvNumber(line.transmission_value_eur ?? 0)
+      const acquisition = formatCsvNumber(line.acquisition_value_eur ?? 0)
+      const gain = formatCsvNumber(line.amount_eur)
+      const issuer = sanitizeCsvField(line.issuer_name ?? line.concept)
+      return `${transmission};${acquisition};${gain};${issuer}`
+    })
+    .join('\n')
+}
+
+function formatCsvNumber(value: number) {
+  return value.toFixed(2).replace('.', ',')
+}
+
+function sanitizeCsvField(value: string) {
+  return value.replace(/,/g, ' ').replace(/\r?\n/g, ' ').trim()
+}
 
 function groupMatchesByOrder(matches: FifoMatch[]) {
   const groups: Array<{

@@ -402,6 +402,24 @@ table tbody tr:hover {
   opacity: 0.72;
 }
 
+.export-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.export-help,
+.export-done {
+  color: rgba(246, 239, 228, 0.68);
+  font-size: 0.9rem;
+}
+
+.export-done {
+  color: var(--mint);
+}
+
 .simulation-result-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -451,6 +469,62 @@ table tbody tr:hover {
   padding-left: 18px;
   color: rgba(246, 239, 228, 0.76);
   line-height: 1.6;
+}
+
+.filing-line-card strong {
+  margin-bottom: 8px;
+}
+
+.filing-line-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.filing-line-meta div {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.filing-line-meta span {
+  display: block;
+  margin-bottom: 4px;
+  color: rgba(246, 239, 228, 0.64);
+  font-size: 0.84rem;
+}
+
+.filing-line-meta strong {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.filing-line-meta-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.filing-line-meta-compact strong {
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.filing-reference-box {
+  margin: 8px 0 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 179, 92, 0.08);
+  border: 1px solid rgba(255, 179, 92, 0.16);
+}
+
+.filing-reference-title {
+  margin: 6px 0 8px;
+  color: rgba(255, 243, 226, 0.92);
+  font-weight: 500;
+}
+
+.filing-reference-box ul {
+  margin: 0;
 }
 
 .guidance-kicker {
@@ -585,6 +659,7 @@ table tbody tr:hover {
 
   .fifo-summary-bar,
   .fifo-match,
+  .filing-line-meta,
   .simulation-result-grid,
   .simulation-form {
     grid-template-columns: 1fr 1fr;
@@ -614,6 +689,7 @@ table tbody tr:hover {
   .section-switcher,
   .fifo-summary-bar,
   .fifo-match,
+  .filing-line-meta,
   .simulation-form,
   .simulation-result-grid {
     grid-template-columns: 1fr;

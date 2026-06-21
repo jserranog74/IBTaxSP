@@ -10,6 +10,8 @@ IBTaxSP is a local web tool to review Interactive Brokers yearly activity and pr
 
 The project is designed to help you understand and document the numbers behind your annual filing. It is not tax advice and does not replace a professional review.
 
+Keywords: Interactive Brokers, IBKR, Flex Query, Spanish tax filing, Agencia Tributaria, FIFO, foreign exchange gains, dividend withholding, capital gains, EUR/USD tracking.
+
 ## What It Does
 
 - reads yearly `ibtax_full.xml` Flex Query exports from Interactive Brokers
@@ -36,6 +38,35 @@ IB/Tax/2023/ibtax_full.xml
 IB/Tax/2024/ibtax_full.xml
 IB/Tax/2025/ibtax_full.xml
 ```
+
+## GitHub Metadata
+
+Suggested repository name:
+
+- `ibtaxsp`
+- `interactive-brokers-spanish-tax`
+- `ibkr-renta-spain`
+
+Suggested repository description:
+
+- `Tool to analyze Interactive Brokers Flex Query exports for Spanish tax filing, FIFO tracking, FX gains, and dividend withholding.`
+
+Suggested GitHub topics:
+
+- `interactive-brokers`
+- `ibkr`
+- `flex-query`
+- `spanish-tax`
+- `spain`
+- `fifo`
+- `foreign-exchange`
+- `dividends`
+- `fastapi`
+- `react`
+
+Suggested About / Website text if you want a short pitch:
+
+- `Interactive Brokers tax workflow for Spain with FIFO, FX, dividends, and filing support views.`
 
 ## Interactive Brokers Export
 

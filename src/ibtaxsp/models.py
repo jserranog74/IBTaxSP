@@ -125,6 +125,7 @@ class YearDataset(BaseModel):
 
 
 class FifoMatch(BaseModel):
+    position_side: str = "long"
     symbol: str
     sell_trade_date: str
     sell_date_time: str
@@ -150,6 +151,7 @@ class FifoMatch(BaseModel):
 
 
 class FifoDisposition(BaseModel):
+    position_side: str = "long"
     symbol: str
     sell_trade_date: str
     sell_date_time: str
@@ -167,6 +169,7 @@ class FifoDisposition(BaseModel):
 
 
 class FifoOpenLot(BaseModel):
+    position_side: str = "long"
     symbol: str
     buy_trade_date: str
     buy_date_time: str
@@ -217,6 +220,7 @@ class AnnualTaxSummary(BaseModel):
 
 class SymbolGainSummary(BaseModel):
     symbol: str
+    issuer_name: str | None = None
     proceeds_eur: float
     basis_eur: float
     gain_eur: float
@@ -236,11 +240,27 @@ class DividendEntry(BaseModel):
     description: str
 
 
+class FxFilingEntry(BaseModel):
+    acquisition_date: str
+    transmission_date: str
+    currency: str
+    quantity: float
+    acquisition_value_eur: float
+    transmission_value_eur: float
+    gain_eur: float
+    acquisition_value_usd: float
+    transmission_value_usd: float
+    gain_usd: float
+    acquisition_description: str | None = None
+    transmission_description: str | None = None
+
+
 class RentaView(BaseModel):
     year: int
     tax_summary: AnnualTaxSummary
     gains_by_symbol: list[SymbolGainSummary]
     dividend_entries: list[DividendEntry]
+    fx_filing_entries: list[FxFilingEntry]
     disposition_count: int
     fx_event_count: int
 
@@ -250,11 +270,32 @@ class RentaInputBlock(BaseModel):
     description: str
     amount_eur: float
     review_notes: list[str]
+    filing_reference_title: str | None = None
+    filing_references: list[str] = []
+
+
+class RentaFilingLine(BaseModel):
+    section: str
+    concept: str
+    amount_eur: float
+    notes: list[str]
+    destination: str | None = None
+    box_reference: str | None = None
+    entry_method: str | None = None
+    suggested_description: str | None = None
+    issuer_name: str | None = None
+    transmission_value_eur: float | None = None
+    acquisition_value_eur: float | None = None
+    mark_reinvestment_check: bool | None = None
+    mark_repurchase_loss_check: bool | None = None
+    mark_dt9_check: bool | None = None
 
 
 class RentaGuidance(BaseModel):
     year: int
     blocks: list[RentaInputBlock]
+    filing_lines: list[RentaFilingLine]
+    fx_filing_entries: list[FxFilingEntry]
     action_items: list[str]
     caveats: list[str]
 

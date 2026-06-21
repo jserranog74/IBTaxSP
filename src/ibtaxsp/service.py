@@ -115,17 +115,18 @@ class TaxService:
         if year not in available_years:
             raise KeyError(year)
 
-        dataset = self.get_year_dataset(year)
+        datasets = [self.get_year_dataset(item_year) for item_year in available_years if item_year <= year]
         tax_summary = self.get_annual_tax_summary(year, lang)
         fifo_result = self.get_fifo_year_result(year)
-        return self.renta_view_builder.build(year, dataset, tax_summary, fifo_result)
+        return self.renta_view_builder.build(year, datasets, tax_summary, fifo_result)
 
     @lru_cache(maxsize=8)
     def get_renta_guidance(self, year: int, lang: str = "es") -> RentaGuidance:
         if year not in [item.year for item in self.repository.list_year_files()]:
             raise KeyError(year)
         summary = self.get_annual_tax_summary(year, lang)
-        return self.renta_guidance_builder.build(summary, lang)
+        renta_view = self.get_renta_view(year, lang)
+        return self.renta_guidance_builder.build(summary, renta_view, lang)
 
     @lru_cache(maxsize=8)
     def get_hacienda_view(self, year: int, lang: str = "es") -> HaciendaView:
