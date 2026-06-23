@@ -235,7 +235,7 @@ type RentaView = {
 
 type ActiveSection = 'summary' | 'guidance' | 'fifo' | 'hacienda' | 'cashflow'
 
-const API_BASE = 'http://127.0.0.1:8000'
+const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000'
 
 const copy = {
   es: {
@@ -285,8 +285,11 @@ const copy = {
     fxLinesDesc: 'Lineas de apoyo con fecha de adquisicion, fecha de transmision y valores para cargar la divisa realizada sin inventar fechas.',
     fxLinesNote: 'Valores EUR operativos calculados al tipo del dia de transmision para cuadrar la ganancia fiscal anual de divisa.',
     exportCsv: 'Copiar CSV',
+    exportCsvSummary: 'Copiar CSV resumido',
+    exportCsvFifo: 'Copiar CSV FIFO',
     exportCsvDone: 'CSV copiado',
     exportCsvSharesHelp: 'Formato AEAT: transmision;adquisicion;ganancia;emisora',
+    exportCsvFifoHelp: 'Formato AEAT por venta FIFO: transmision;adquisicion;ganancia;descripcion',
     issuerName: 'Entidad emisora',
     transmissionValue: 'Valor de transmision',
     acquisitionValue: 'Valor de adquisicion',
@@ -439,8 +442,11 @@ const copy = {
     fxLinesDesc: 'Support lines with acquisition date, transmission date, and values so you can enter realized FX without inventing dates.',
     fxLinesNote: 'Operational EUR values are calculated at the transmission-day FX rate so they reconcile to the annual fiscal FX gain.',
     exportCsv: 'Copy CSV',
+    exportCsvSummary: 'Copy summary CSV',
+    exportCsvFifo: 'Copy FIFO CSV',
     exportCsvDone: 'CSV copied',
     exportCsvSharesHelp: 'AEAT format: transfer;acquisition;gain;issuer',
+    exportCsvFifoHelp: 'AEAT FIFO sale format: transfer;acquisition;gain;description',
     issuerName: 'Issuer',
     transmissionValue: 'Transfer value',
     acquisitionValue: 'Acquisition value',
@@ -739,6 +745,14 @@ function App() {
   async function copyListedSharesCsv() {
     if (!guidance) return
     const csv = buildListedSharesCsv(guidance)
+    await navigator.clipboard.writeText(csv)
+    setCsvCopied(t.exportCsvDone)
+    window.setTimeout(() => setCsvCopied(null), 2500)
+  }
+
+  async function copyFifoSalesCsv() {
+    if (!fifo || !guidance) return
+    const csv = buildFifoSalesCsv(fifo, guidance)
     await navigator.clipboard.writeText(csv)
     setCsvCopied(t.exportCsvDone)
     window.setTimeout(() => setCsvCopied(null), 2500)
@@ -1264,9 +1278,12 @@ function App() {
                 </div>
                 <div className="export-toolbar">
                   <button className="simulate-button" type="button" onClick={() => void copyListedSharesCsv()}>
-                    {t.exportCsv}
+                    {t.exportCsvSummary}
                   </button>
-                  <span className="export-help">{t.exportCsvSharesHelp}</span>
+                  <button className="simulate-button" type="button" onClick={() => void copyFifoSalesCsv()}>
+                    {t.exportCsvFifo}
+                  </button>
+                  <span className="export-help">{t.exportCsvSharesHelp} | {t.exportCsvFifoHelp}</span>
                   {csvCopied ? <span className="export-done">{csvCopied}</span> : null}
                 </div>
                 <div className="guidance-grid-cards">
@@ -1478,6 +1495,31 @@ function buildListedSharesCsv(guidance: RentaGuidance) {
       return `${transmission};${acquisition};${gain};${issuer}`
     })
     .join('\n')
+}
+
+function buildFifoSalesCsv(fifo: FifoResult, guidance: RentaGuidance) {
+  const issuerBySymbol = buildIssuerBySymbol(guidance)
+  return fifo.dispositions
+    .map((item) => {
+      const transmission = formatCsvNumber(item.proceeds_eur)
+      const acquisition = formatCsvNumber(item.basis_eur)
+      const gain = formatCsvNumber(item.gain_eur)
+      const description = sanitizeCsvField(issuerBySymbol.get(item.symbol) ?? item.symbol)
+      return `${transmission};${acquisition};${gain};${description}`
+    })
+    .join('\n')
+}
+
+function buildIssuerBySymbol(guidance: RentaGuidance) {
+  const result = new Map<string, string>()
+  for (const line of guidance.filing_lines) {
+    if (!line.issuer_name) continue
+    const [symbol] = line.concept.split(' - ')
+    if (symbol) {
+      result.set(symbol, line.issuer_name)
+    }
+  }
+  return result
 }
 
 function formatCsvNumber(value: number) {
